@@ -1,0 +1,14 @@
+NyanBar - a Nyan Cat progress bar for python
+
+Example:
+
+progress = NyanBar()
+# do some work
+progress.update(20) # update always takes where you are now
+
+Or...
+
+progress = NyanBar(tasks=100)
+# do some work.
+progress.task_done()
+
