@@ -21,7 +21,6 @@ __copyright__ = '(C) 2011 Andrew Gwozdziewycz, GNU LGPL'
 __version__ = VERSION
 
 
-
 from itertools import cycle
 import threading, time
 
@@ -75,41 +74,41 @@ stream.next(); legs.next(); toast.next()
 
 class NyanBar(threading.Thread):
 
-    def __init__(self, interval=100, tasks=0):
+    def __init__(self, interval=100, tasks=0, visible=True):
         threading.Thread.__init__(self)
         self._amount = 0
         self._interval = interval
         self._tasks = tasks
         self._tasks_done = 0
         self._finished = False
+        self._showing = visible
         self.setDaemon(True)
         self.start()
+
+    def show(self, visible=True):
+        self._showing = visible
 
     def run(self):
         while not self._finished:
             self._draw(self._amount)
             if self._amount >= 100:
-                self._finish()
+                break
             time.sleep(self._interval / 1000.0)
 
     def _draw(self, amt):
-        width = 35 * (amt / 100.0) # 70 characters, but stream pieces are len 2
-        st = stream.next() * int(width)
-        t = toast.next()
-        params = (colored(st, colors.next(), bgcolors.next()),
-                  colored(st[:-1], colors.next(), bgcolors.next()),
-                  tail.next(),
-                  ' ' * t,
-                  colored(st, colors.next(), bgcolors.next()),
-                  '_' * t,
-                  ' ' * (len(st) + legs.next()))
-        print TEMPLATE % params
-        print "\x1b[6A" # move cursor 6 lines up
-
-    def _finish(self):
-        print "\x1b[4B" # move cursor 4 lines down
-        print "\x1b[J"
-        self._finished = True
+        if self._showing:
+            width = 35 * (amt / 100.0) # 70 characters, but stream pieces are len 2
+            st = stream.next() * int(width)
+            t = toast.next()
+            params = (colored(st, colors.next(), bgcolors.next()),
+                      colored(st[:-1], colors.next(), bgcolors.next()),
+                      tail.next(),
+                      ' ' * t,
+                      colored(st, colors.next(), bgcolors.next()),
+                      '_' * t,
+                      ' ' * (len(st) + legs.next()))
+            print TEMPLATE % params
+            print "\x1b[6A" # move cursor 6 lines up
 
     def update(self, progress):
         if progress < 0:
@@ -123,4 +122,7 @@ class NyanBar(threading.Thread):
             self._tasks_done += 1
             self.update(int(100 * self._tasks_done / self._tasks))
 
-
+    def finish(self):
+        self._finished = True
+        print "\x1b[4B" # move cursor 4 lines down
+        print "\x1b[J"        
