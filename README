@@ -5,10 +5,25 @@ Example:
 progress = NyanBar()
 # do some work
 progress.update(20) # update always takes where you are now
+progress.finish()
+
 
 Or...
 
 progress = NyanBar(tasks=100)
 # do some work.
 progress.task_done()
+# do many more tasks...
+progress.finish()
 
+
+Or... if you happen to have a specific MP3 file, famous or not.
+
+progress = NyanBar(audiofile="/path/to/NyanCat-original.mp3")
+progress.update(20)
+...
+progress.finish()
+
+
+Audio currently works only with afplay on OSX -- more supported audio
+players coming soon!
