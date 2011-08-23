@@ -22,7 +22,11 @@ __version__ = VERSION
 
 
 from itertools import cycle
-import threading, time
+import threading
+import time
+import subprocess
+import os
+import signal
 
 ON = "~_"
 OFF = "_-"
@@ -74,7 +78,7 @@ stream.next(); legs.next(); toast.next()
 
 class NyanBar(threading.Thread):
 
-    def __init__(self, interval=100, tasks=0, visible=True):
+    def __init__(self, interval=100, tasks=0, visible=True, audiofile=None):
         threading.Thread.__init__(self)
         self._amount = 0
         self._interval = interval
@@ -82,11 +86,18 @@ class NyanBar(threading.Thread):
         self._tasks_done = 0
         self._finished = False
         self._showing = visible
+        self._audiofile = audiofile
+        self._audiopid = None
         self.setDaemon(True)
         self.start()
+        self.play()
 
     def show(self, visible=True):
         self._showing = visible
+
+    def play(self):
+        if self._audiofile:
+            self._audiopid = subprocess.Popen(["afplay", self._audiofile]).pid
 
     def run(self):
         while not self._finished:
@@ -125,4 +136,8 @@ class NyanBar(threading.Thread):
     def finish(self):
         self._finished = True
         print "\x1b[4B" # move cursor 4 lines down
-        print "\x1b[J"        
+        print "\x1b[J"
+        
+        if self._audiopid:
+            # kill it.
+            os.kill(self._audiopid, signal.SIGKILL)
