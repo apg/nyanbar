@@ -53,8 +53,12 @@ SAVE_CURSOR = "\x1b[s"
 RESTORE_CURSOR = "\x1b[u"
 ERASE_REST = "\x1b[J"
 
-AUDIO_PLAYERS = ['afplay', 'mplayer', 'mpg123', 'mpg321']
+AUDIO_PLAYERS = [('afplay', []), 
+                 ('mpg123', ['-q',]),
+                 ('mplayer', ['-really-quiet',]),
+                 ]
 
+                 
 
 def background(color):
     return color + 10
@@ -83,12 +87,12 @@ def find_audio_player():
     """
     path = os.environ.get('PATH', '').split(':')
     for p in path:
-        for a in AUDIO_PLAYERS:
+        for a, args in AUDIO_PLAYERS:
             tp = os.path.join(p, a)
             if os.path.exists(tp) and \
                     not os.path.isdir(tp) and \
                     os.access(tp, os.X_OK):
-                return tp
+                return [tp] + list(args)
     return None
 
 
@@ -125,7 +129,8 @@ class NyanBar(threading.Thread):
         if self._audiofile:
             ap = find_audio_player()
             if ap:
-                self._audiopid = subprocess.Popen([ap, self._audiofile]).pid
+                args = ap + [self._audiofile]
+                self._audiopid = subprocess.Popen(args).pid
 
     def run(self):
         self._started = True
