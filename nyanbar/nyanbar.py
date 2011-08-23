@@ -14,7 +14,7 @@ progress.task_done()
 
 """
 
-VERSION = '0.1'
+VERSION = '0.19'
 
 __author__ = 'Andrew Gwozdziewycz <web@apgwoz.com>'
 __copyright__ = '(C) 2011 Andrew Gwozdziewycz, GNU LGPL'
@@ -53,6 +53,8 @@ SAVE_CURSOR = "\x1b[s"
 RESTORE_CURSOR = "\x1b[u"
 ERASE_REST = "\x1b[J"
 
+AUDIO_PLAYERS = ['afplay', 'mplayer', 'mpg123', 'mpg321']
+
 
 def background(color):
     return color + 10
@@ -76,6 +78,20 @@ colors.next(); bgcolors.next(); tail.next();
 stream.next(); legs.next(); toast.next()
 
 
+def find_audio_player():
+    """Searches for one of the AUDIO_PLAYERS executables on the path
+    """
+    path = os.environ.get('PATH', '').split(':')
+    for p in path:
+        for a in AUDIO_PLAYERS:
+            tp = os.path.join(p, a)
+            if os.path.exists(tp) and \
+                    not os.path.isdir(tp) and \
+                    os.access(tp, os.X_OK):
+                return tp
+    return None
+
+
 class NyanBar(threading.Thread):
 
     def __init__(self, interval=100, tasks=0, visible=True, audiofile=None):
@@ -85,21 +101,35 @@ class NyanBar(threading.Thread):
         self._tasks = tasks
         self._tasks_done = 0
         self._finished = False
-        self._showing = visible
         self._audiofile = audiofile
         self._audiopid = None
         self.setDaemon(True)
-        self.start()
-        self.play()
+        self._started = False
+        self._showing = visible
+        if visible:
+            self.start()
+
+    def __enter__(self):
+        self.show()
+        return self
+
+    def __exit__(self, *args):
+        self.finish()
 
     def show(self, visible=True):
+        if not self._started:
+            self.start()
         self._showing = visible
 
     def play(self):
         if self._audiofile:
-            self._audiopid = subprocess.Popen(["afplay", self._audiofile]).pid
+            ap = find_audio_player()
+            if ap:
+                self._audiopid = subprocess.Popen([ap, self._audiofile]).pid
 
     def run(self):
+        self._started = True
+        self.play()
         while not self._finished:
             self._draw(self._amount)
             if self._amount >= 100:
