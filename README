@@ -25,5 +25,12 @@ progress.update(20)
 progress.finish()
 
 
-Audio currently works only with afplay on OSX -- more supported audio
-players coming soon!
+You can also use progress in a with statement which will call
+`finish()` for you:
+
+with NyanBar(tasks=10, audiofile="/path/to/NyanCat-original.mp3") as progress:
+    progress.task_done()
+    ... more
+
+(You'll need to be on OSX and have afplay, or on Linux and have
+mpg123 or mplayer)
