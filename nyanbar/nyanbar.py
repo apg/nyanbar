@@ -53,12 +53,12 @@ SAVE_CURSOR = "\x1b[s"
 RESTORE_CURSOR = "\x1b[u"
 ERASE_REST = "\x1b[J"
 
-AUDIO_PLAYERS = [('afplay', []), 
+AUDIO_PLAYERS = [('afplay', []),
                  ('mpg123', ['-q',]),
                  ('mplayer', ['-really-quiet',]),
                  ]
 
-                 
+
 
 def background(color):
     return color + 10
@@ -78,8 +78,8 @@ tail = cycle(['v', '~', '^', '~'])
 legs = cycle([-1, 0, 1])
 stream = cycle([ON, OFF])
 toast = cycle([1, 2])
-colors.next(); bgcolors.next(); tail.next(); 
-stream.next(); legs.next(); toast.next()
+next(colors); next(bgcolors); next(tail);
+next(stream); next(legs); next(toast)
 
 
 def find_audio_player():
@@ -108,7 +108,7 @@ class NyanBar(threading.Thread):
         self._audiofile = audiofile
         self._audiopid = None
         self.setDaemon(True)
-        self._started = False
+        self._started = threading.Event()
         self._showing = visible
         if visible:
             self.start()
@@ -121,7 +121,7 @@ class NyanBar(threading.Thread):
         self.finish()
 
     def show(self, visible=True):
-        if not self._started:
+        if not self._started.is_set():
             self.start()
         self._showing = visible
 
@@ -133,7 +133,7 @@ class NyanBar(threading.Thread):
                 self._audiopid = subprocess.Popen(args).pid
 
     def run(self):
-        self._started = True
+        self._started.set()
         self.play()
         while not self._finished:
             self._draw(self._amount)
@@ -144,17 +144,17 @@ class NyanBar(threading.Thread):
     def _draw(self, amt):
         if self._showing:
             width = 35 * (amt / 100.0) # 70 characters, but stream pieces are len 2
-            st = stream.next() * int(width)
-            t = toast.next()
-            params = (colored(st, colors.next(), bgcolors.next()),
-                      colored(st[:-1], colors.next(), bgcolors.next()),
-                      tail.next(),
+            st = next(stream) * int(width)
+            t = next(toast)
+            params = (colored(st, next(colors), next(bgcolors)),
+                      colored(st[:-1], next(colors), next(bgcolors)),
+                      next(tail),
                       ' ' * t,
-                      colored(st, colors.next(), bgcolors.next()),
+                      colored(st, next(colors), next(bgcolors)),
                       '_' * t,
-                      ' ' * (len(st) + legs.next()))
-            print TEMPLATE % params
-            print "\x1b[6A" # move cursor 6 lines up
+                      ' ' * (len(st) + next(legs)))
+            print(TEMPLATE % params)
+            print("\x1b[6A") # move cursor 6 lines up
 
     def update(self, progress):
         if progress < 0:
@@ -170,9 +170,9 @@ class NyanBar(threading.Thread):
 
     def finish(self):
         self._finished = True
-        print "\x1b[4B" # move cursor 4 lines down
-        print "\x1b[J"
-        
+        print("\x1b[4B") # move cursor 4 lines down
+        print("\x1b[J")
+
         if self._audiopid:
             # kill it.
             os.kill(self._audiopid, signal.SIGKILL)
