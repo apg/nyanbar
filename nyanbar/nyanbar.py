@@ -14,10 +14,10 @@ progress.task_done()
 
 """
 
-VERSION = '0.2'
+VERSION = '0.3'
 
 __author__ = 'Andrew Gwozdziewycz <web@apgwoz.com>'
-__copyright__ = '(C) 2011 Andrew Gwozdziewycz, GNU LGPL'
+__copyright__ = '(C) 2011, 2014 Andrew Gwozdziewycz, GNU LGPL'
 __version__ = VERSION
 
 

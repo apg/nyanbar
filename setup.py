@@ -12,7 +12,7 @@ setup(
     author_email = "web@apgwoz.com",
     description = ("nyanbar is a progress bar for scripts that uses the Nyan cat instead of other stuff."),
     url='https://github.com/apgwoz/nyanbar',
-    license = "LGLP",
+    license = "LGPL",
     packages=['nyanbar'],
     install_requires=[],
     long_description=read('README'),
